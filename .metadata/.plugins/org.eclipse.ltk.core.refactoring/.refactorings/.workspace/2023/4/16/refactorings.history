@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;AD9910-DDS-PS/ACZ702_Lib/AD9910/main2.c&apos;" deleteContents="false" description="Delete resource &apos;AD9910-DDS-PS/ACZ702_Lib/AD9910/main2.c&apos;" element1="/AD9910-DDS-PS/ACZ702_Lib/AD9910/main2.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1681634143173"/>
+</session>
