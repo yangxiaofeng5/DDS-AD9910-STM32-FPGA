@@ -1,16 +1,37 @@
 #include "AD9910V2.h"
 
 uint8_t tran[8] = {0};
-uint32_t data[200];
+
 struct ad9910_reg AD9910;
 
+/**
+ * @brief AD9910 reg parameter init 
+ * 
+ */
 uint8_t cfr1[] = {0x00, 0x40, 0x00, 0x00};						  //cfr1 control，from right to left ,from low bit to high bit
 uint8_t cfr2[] = {0x01, 0x00, 0x00, 0x00};						  //cfr2 control
-uint8_t cfr3[] = {0x05, 0x3D, 0x41, 0x32};						  //cfr3 control  40M输入  25倍频  VC0=101   ICP=001;
+uint8_t cfr3[] = {0x05, 0x3D, 0x41, 0x32};						  //cfr3 control  40M输入  25倍频  VC0=101   ICP=111: resister and capacitor is match with this parameter
+
+uint8_t aux_dac[] = {0x00, 0x00, 0x00, 0x00};					  //aux_dac control
+uint8_t io_update_rate[] = {0x00, 0x00, 0x00, 0x00};			  //io_update_rate control
+uint8_t ftw[] = {0x00, 0x00, 0x00, 0x00};						  //ftw control
+uint8_t pow[] = {0x00, 0x00, 0x00, 0x00};						  //pow control
+uint8_t asf[] = {0x00, 0x00, 0x00, 0x00};						  //asf control
+
+uint8_t multichip_sync[] = {0x00, 0x00, 0x00, 0x00};			  //multichip_sync control
+uint64_t digital_ramp_limit[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};		  //digital_ramp_limit control
+uint64_t digital_ramp_step[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};		  //digital_ramp_step control
+uint64_t digital_ramp_rate[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};		  //digital_ramp_rate control
 
 // this profile must be set as uint64_t instand of uint8_t
 uint64_t profile0[] = {0x3f, 0xff, 0x00, 0x00, 0x25, 0x09, 0x7b, 0x42}; //profile1 control /signal mode/ 01振幅控制 23相位控制 4567频率调谐 0x25,0x09,0x7b,0x42
-
+uint64_t profile1[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile2[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile3[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile4[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile5[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile6[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
+uint64_t profile7[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  0x00, 0x00};
 
 /**
  * @brief transfer 8 bit data,it's the bottom code,SPI
@@ -183,9 +204,6 @@ void AD9910_Init()
 	AD9910.CFR1 = (cfr1[0]<<24) + (cfr1[1]<<16) + (cfr1[2]<<8) + cfr1[3];
 	AD9910.CFR2 = (cfr2[0]<<24) + (cfr2[1]<<16) + (cfr2[2]<<8) + cfr2[3];
 	AD9910.CFR3 = (cfr3[0]<<24) + (cfr3[1]<<16) + (cfr3[2]<<8) + cfr3[3];
-	//AD9910.CFR1 = 0x40000000;   //{0x00, 0x40, 0x00, 0x00};	
-	//AD9910.CFR2 = 0x01000000;   //{0x01, 0x00, 0x00, 0x00};
-	//AD9910.CFR3 = 0x053D4132;   //{0x05, 0x3D, 0x41, 0x32};
 	//AD9910.Aux_DAC_Control = 0x00007F7F;
 	//AD9910.IO_UPDATE = 0x00000002;
 	//AD9910.FTW = 0x0;
@@ -215,10 +233,15 @@ void AD9910_Init()
 
 }
 
+/**
+ * @brief AD9910 single tone mode， Amplitude convert
+ * 
+ * @param Amp 
+ */
 void AD9910_AMP_Convert(uint32_t Amp)
 {
 	uint64_t Temp;
-	Temp = (uint64_t)Amp * 28.4829; //25.20615385=(2^14)/650
+	Temp = (uint64_t)Amp * 28.4829; //calulate ASF : 25.20615385=(2^14)/650
 	if (Temp > 0x3fff)
 		Temp = 0x3fff;
 	Temp &= 0x3fff;
@@ -229,11 +252,14 @@ void AD9910_AMP_Convert(uint32_t Amp)
 	AD9910_Reg_Write(_PROFILE_0, _PROFILE_0_SIZE, AD9910.Profile_0);
 	AD9910_IO_UPDATE();
 }
-
+/**
+ * @brief AD9910 single tone mode， Freq convert 
+ * @param Freq 
+ */
 void AD9910_Freq_Convert(uint64_t Freq)
 {
 	uint64_t Temp;
-	Temp = (uint64_t)Freq * 4.294967296; // 4.294967296=(2^32)/1000000000
+	Temp = (uint64_t)Freq * 4.294967296; //calulate FTW : 4.294967296=(2^32)/1000000000
 	profile0[7] = (uint8_t)Temp;
 	profile0[6] = (uint8_t)(Temp >> 8);
 	profile0[5] = (uint8_t)(Temp >> 16);
@@ -245,12 +271,35 @@ void AD9910_Freq_Convert(uint64_t Freq)
 }
 
 /**
- * @brief single mode wave generation function
+ * @brief AD9910 single tone mode， Phase convert
+ * 
+ * @param Phi 
+ */
+void AD9910_Phi_Convert(uint64_t Phi)
+{
+	uint64_t Temp;
+	Temp = (uint64_t)Phi * 182.04444444; //calulate POW : 182.04444444=(2^16)/2pi
+	profile0[3] = (uint8_t)Temp;
+	profile0[2] = (uint8_t)(Temp >> 8);
+
+
+	AD9910.Profile_0 = (profile0[0]<<56) + (profile0[1]<<48) + (profile0[2]<<40) + (profile0[3]<<32) + (profile0[4]<<24) + (profile0[5]<<16) + (profile0[6]<<8) + profile0[7];
+	AD9910_Reg_Write(_PROFILE_0, _PROFILE_0_SIZE, AD9910.Profile_0);
+	AD9910_IO_UPDATE();
+}
+
+/**
+ * @brief square wave generation function
  * 
  */
 void AD9910_RAM_Load_Profile_0()
 {
-    AD9910.CFR1 = 0x40000002;
+	//AD9910.CFR1 = 0x40000002;
+	cfr1[0] = 0x40;
+	cfr1[1] = 0x00;
+	cfr1[3] = 0x02;
+    AD9910.CFR1 =  (cfr1[0]<<24) + (cfr1[1]<<16) + (cfr1[2]<<8) + cfr1[3];
+	
 	AD9910_Reg_Write(_CFR1, _CFR1_SIZE, (uint64_t)AD9910.CFR1);
 	AD9910_IO_UPDATE();    // this is use for stop spi transfer
 
@@ -269,9 +318,12 @@ void AD9910_RAM_Load_Profile_0()
 	}
 
 	//Set RAM Enable bit
-	AD9910.CFR1 = 0xC0000002;
+	//AD9910.CFR1 = 0xC0000002;
+	cfr1[0] = 0xC0;d
+	AD9910.CFR1 =  (cfr1[0]<<24) + (cfr1[1]<<16) + (cfr1[2]<<8) + cfr1[3];
 	AD9910_Reg_Write(_CFR1, _CFR1_SIZE, (uint64_t)AD9910.CFR1);
 	AD9910_IO_UPDATE();
 
 }
 
+# write DDS control function 
