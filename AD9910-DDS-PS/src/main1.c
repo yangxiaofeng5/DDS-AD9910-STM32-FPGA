@@ -57,10 +57,10 @@ int main()
     PS_GPIO_Init();
 
 	AD9910_Init();
-	AD9910_Profile_Set(0);
-
-	AD9910_AMP_Convert(400);
-	AD9910_Freq_Convert(250000000);
+	
+	//AD9910_AMP_Convert(400);
+	//AD9910_Freq_Convert(250000000);
+	AD9910_Chrip_generate(16000000，24000000，1);
 
     print("The code is finish!\r\n");
     return 0;

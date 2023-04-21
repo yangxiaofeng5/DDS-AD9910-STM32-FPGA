@@ -43,6 +43,7 @@ enum REG_BYTE_SIZE{	_CFR1_SIZE = 4, _CFR2_SIZE = 4, _CFR3_SIZE = 4, _AUX_ADC_CON
 					_PROFILE_7_SIZE = 8, _RAM_SIZE = 4
 				};
 
+#define AD9910_RAM_DATA_SIZE 4096 
 
 void AD9910_Init(void);
 void AD9910_Reg_Write(enum REG_ADDRESS reg_address, enum REG_BYTE_SIZE reg_byte_size, uint64_t content);
