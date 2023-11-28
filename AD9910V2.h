@@ -53,8 +53,8 @@ enum REG_BYTE_SIZE{	_CFR1_SIZE = 4, _CFR2_SIZE = 4, _CFR3_SIZE = 4, _AUX_ADC_CON
 #define PI 3.14159265358979323846
 #define AD9910_Freq_Max 400000000
 
-#define FRE_LOW_HIGH 1
-#define FRE_HIGH_LOW 0
+#define FRE_LOW_HIGH 0
+#define FRE_HIGH_LOW 1
 
 void AD9910_Init(void);
 void AD9910_Reg_Write(enum REG_ADDRESS reg_address, enum REG_BYTE_SIZE reg_byte_size, uint64_t content);
@@ -65,6 +65,10 @@ void AD9910_AMP_Convert(uint32_t Amp);
 void AD9910_Freq_Convert(uint64_t Freq);
 
 void AD9910_Ram_Play(uint8_t PFx);
+void AD9910_RAM_Chrip_generate(uint64_t start_freq, uint64_t stop_freq, uint64_t sweep_time,uint64_t sys_time, uint8_t direction);
+
 void AD9910_RAMP_Chrip_generate(uint64_t start_freq, uint64_t stop_freq, uint64_t sweep_time,uint64_t sys_time, uint8_t direction);
 void AD9910_Ramp_Play(uint16_t t_total,uint16_t t_chrip);
+
+void REG_REFRESH(void);
 #endif
